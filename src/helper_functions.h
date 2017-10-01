@@ -12,6 +12,8 @@
 #include <fstream>
 #include <math.h>
 #include <vector>
+#include <random>
+#include <algorithm>
 #include "map.h"
 
 // for portability of M_PI (Vis Studio, MinGW, etc.)
@@ -239,6 +241,48 @@ inline bool read_landmark_data(std::string filename, std::vector<LandmarkObs>& o
 		observations.push_back(meas);
 	}
 	return true;
+}
+
+
+//class CNoiseGenerator
+//{
+//public:
+//  CNoiseGenerator(double const state[], double const std[], int size=3)
+//  : m_size(size)
+//  , m_gen()
+//  , m_normGen(0)
+//  , m_state[m_size]
+//  , m_std[m_size]
+//
+//  double [] generate();
+//private:
+//  int const m_size;
+//  std::default_random_engine m_gen;
+//  normal_distribution<double> *m_normGen;
+//  double m_state[];
+//  double m_std[];
+//};
+
+inline void enrichWithRandomNoise(double state[], double const std[])
+{
+  using namespace std;
+  //some constants references for the standard deviation using for initialization
+  double const &std_x(std[0]);
+  double const &std_y(std[1]);
+  double const &std_theta(std[2]);
+
+  //some references to our states
+  double &x(state[0]);
+  double &y(state[1]);
+  double &theta(state[2]);
+
+  default_random_engine generator;
+  normal_distribution<double> dist_x(x, std_x);
+  normal_distribution<double> dist_y(y, std_y);
+  normal_distribution<double> dist_theta(theta, std_theta);
+  x = dist_x(generator);
+  y = dist_y(generator);
+  theta = dist_theta(generator);
 }
 
 #endif /* HELPER_FUNCTIONS_H_ */

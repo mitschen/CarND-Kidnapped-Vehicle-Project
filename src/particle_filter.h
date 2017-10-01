@@ -11,16 +11,37 @@
 
 #include "helper_functions.h"
 
-struct Particle {
+struct SObservation
+{
+  SObservation()
+  : id(-1), x(0.), y(0.), distanceTo(-1.){};
+  SObservation(double const &mapX, double const &mapY)
+  : id(-1), x(mapX), y(mapY), distanceTo(-1.){};
+  int id;
+  double x;
+  double y;
+  double distanceTo;
+};
 
+
+
+struct Particle {
+  Particle();
+//  Particle(int const &_id, double const &_x, double const& _y, double const& _theta);
+  Particle(int const &_id, double const state[]);
+  void predictPosition(double const &dt, double const std_pos[], double const &velocity, double const &yawrate);
+  void transformAndUpdateObservation(std::vector<LandmarkObs> const &);
+  void matchObservationsToMap(Map const &map_landmarks, double const &maxDistance);
+  void calculateWeight(double const std_landmark[]);
 	int id;
 	double x;
 	double y;
 	double theta;
 	double weight;
-	std::vector<int> associations;
-	std::vector<double> sense_x;
-	std::vector<double> sense_y;
+	std::vector<SObservation> observations;
+//	std::vector<int> associations;
+//	std::vector<double> sense_x;
+//	std::vector<double> sense_y;
 };
 
 
@@ -45,7 +66,11 @@ public:
 
 	// Constructor
 	// @param num_particles Number of particles
-	ParticleFilter() : num_particles(0), is_initialized(false) {}
+	ParticleFilter(int noParticals = 1000)
+	: num_particles(noParticals)
+	, is_initialized(false)
+	, weights(0)
+	, particles(0){}
 
 	// Destructor
 	~ParticleFilter() {}
