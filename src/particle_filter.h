@@ -14,13 +14,15 @@
 struct SObservation
 {
   SObservation()
-  : id(-1), x(0.), y(0.), distanceTo(-1.){};
+  : id(-1), x(0.), y(0.), distanceTo(-1.), x_diff_quad(-1.), y_diff_quad(-1.){};
   SObservation(double const &mapX, double const &mapY)
-  : id(-1), x(mapX), y(mapY), distanceTo(-1.){};
+  : id(-1), x(mapX), y(mapY), distanceTo(-1.), x_diff_quad(-1.), y_diff_quad(-1.){};
   int id;
   double x;
   double y;
-  double distanceTo;
+  double distanceTo;  //resulting distance to the landmark
+  double x_diff_quad; //diff between landmark in x, quadric
+  double y_diff_quad; //diff between landmark in y, quadric
 };
 
 
@@ -33,6 +35,7 @@ struct Particle {
   void transformAndUpdateObservation(std::vector<LandmarkObs> const &);
   void matchObservationsToMap(Map const &map_landmarks, double const &maxDistance);
   void calculateWeight(double const std_landmark[]);
+  void printMe();
 	int id;
 	double x;
 	double y;
@@ -66,7 +69,7 @@ public:
 
 	// Constructor
 	// @param num_particles Number of particles
-	ParticleFilter(int noParticals = 1000)
+	ParticleFilter(int noParticals = 30)
 	: num_particles(noParticals)
 	, is_initialized(false)
 	, weights(0)
