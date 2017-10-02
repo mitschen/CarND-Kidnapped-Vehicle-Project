@@ -243,26 +243,19 @@ inline bool read_landmark_data(std::string filename, std::vector<LandmarkObs>& o
 	return true;
 }
 
-
-//class CNoiseGenerator
-//{
-//public:
-//  CNoiseGenerator(double const state[], double const std[], int size=3)
-//  : m_size(size)
-//  , m_gen()
-//  , m_normGen(0)
-//  , m_state[m_size]
-//  , m_std[m_size]
-//
-//  double [] generate();
-//private:
-//  int const m_size;
-//  std::default_random_engine m_gen;
-//  normal_distribution<double> *m_normGen;
-//  double m_state[];
-//  double m_std[];
-//};
-
+/*
+ * calculate a noise offset to a state variable (containing 3 values: x, y, theta)
+ *
+ * This function is used to calcuate a noise offset on a 3 dimensional state
+ * vector. It uses a normal distribution with the state as mean and the
+ * std parameter as variance. The caller must pass an already initialized
+ * random number generator.
+ * As a result, the state vector is the original state vector plus a noise
+ * offset
+ *
+ * Please note: there is no sanity check of vector size - so if you
+ * use this vector in inadequate way, it will definitely result in a seg-fault
+ */
 inline void enrichWithRandomNoise(double state[], double const std[], std::default_random_engine & generator)
 {
   using namespace std;

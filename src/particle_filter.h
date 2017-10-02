@@ -12,10 +12,31 @@
 #include <random>
 #include "helper_functions.h"
 
+/**
+ * observation entry of each particle
+ *
+ * An observation information is transformed in an SObservation object
+ * for each particle. This observation object contains after different
+ * particle operations
+ * * the id of the landmark with best match
+ * * the x-position of the observation in map coord-sys
+ * * the y-position of the observation in map coord-sys
+ * * the resulting distance to the landmark best match
+ * * the square of distance in x between landmark and observation
+ * * the square of distance in y between landmark and observation
+ * The last two values are used for error/ weight calculation
+ */
 struct SObservation
 {
+  /**
+   * default initializer necessary for using it in vector
+   * @Please note: should never been called
+   */
   SObservation()
   : id(-1), x(0.), y(0.), distanceTo(-1.), x_diff_quad(-1.), y_diff_quad(-1.){};
+  /**
+   * initialization used during observation step
+   */
   SObservation(double const &mapX, double const &mapY)
   : id(-1), x(mapX), y(mapY), distanceTo(-1.), x_diff_quad(-1.), y_diff_quad(-1.){};
   int id;
@@ -27,25 +48,71 @@ struct SObservation
 };
 
 
-
+/**
+ * a certain particle object
+ *
+ * A particle is initialized with a certain state information containing
+ * x, y and theta (=yaw). There are different functions which allows to
+ * proceed the particle object through the different staps of an particle
+ * filter. Please refer to the function description below
+ */
 struct Particle {
+  /**
+   * default C'tor necessary to allow usage in std::vector
+   */
   Particle();
-//  Particle(int const &_id, double const &_x, double const& _y, double const& _theta);
+  /**
+   * initialize a particle with a certain id and a state vector
+   * The state vector represents x, y and yaw (theta)
+   */
   Particle(int const &_id, double const state[]);
+  /**
+   * predict new particle position based on dynamics and noise (particle filter step)
+   *
+   * This method will update the internal state of an particle according to
+   * the veloctiy and yawrate, taking a noise information in x, y, theta
+   * passed as std_pos into consideration.
+   *
+   * The function following the math provided in lesson 14 part 7.
+   *
+   * Please note: it is necessary to pass an external random-engine to each
+   * of the particles. Otherwise, the gaussian noise calculation will result
+   * in very strange values,
+   */
   void predictPosition(double const &dt, double const std_pos[], double const &velocity, double const &yawrate, std::default_random_engine &gen);
+  /**
+   * transform the passed observation into map-representation according to
+   * orientation and location of a certain particle (particle filter step)
+   *
+   * The function following the math provided in lesson 14 part 14.
+   */
   void transformAndUpdateObservation(std::vector<LandmarkObs> const &);
+  /**
+   * calculate the closest neighbor of the particles observations in reference
+   * to the real map data. Consider the maxDistance to filter out
+   * map-information we don't need to take into considerations.
+   */
   void matchObservationsToMap(Map const &map_landmarks, double const &maxDistance);
+  /**
+   * calculate the particles weight by multiplying all distance "errors"
+   * of all observations. Store the weight in the corresponding member.
+   * This method will furthermore take an external noise into consideration
+   *
+   * The function following the math provided in lesson 14 part 17.
+   */
   void calculateWeight(double const std_landmark[]);
+  /**
+   * print the details of the particle to std::out
+   */
   void printMe();
-	int id;
-	double x;
-	double y;
-	double theta;
-	double weight;
+  //MEMBERS
+	int id;       //id of the particle
+	double x;     //current x position
+	double y;     //current y position
+	double theta; //current yaw-angle
+	double weight;//resulting weight (is valid after calculateWeight function is called)
+	//list of SObservations objects. List will be upated after each transformAndUpdateObservation
 	std::vector<SObservation> observations;
-//	std::vector<int> associations;
-//	std::vector<double> sense_x;
-//	std::vector<double> sense_y;
 };
 
 
@@ -64,6 +131,9 @@ class ParticleFilter {
 	std::vector<double> weights;
 	
 	//Generator we're using
+	//It took me while to figure out that using local random-engine
+	//for each noise calculation results in always the same results
+	//That leads to a very strange behaviour of the particles.
 	std::default_random_engine randomGen;
 public:
 	
