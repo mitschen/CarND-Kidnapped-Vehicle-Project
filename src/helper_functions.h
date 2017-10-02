@@ -263,7 +263,7 @@ inline bool read_landmark_data(std::string filename, std::vector<LandmarkObs>& o
 //  double m_std[];
 //};
 
-inline void enrichWithRandomNoise(double state[], double const std[])
+inline void enrichWithRandomNoise(double state[], double const std[], std::default_random_engine & generator)
 {
   using namespace std;
   //some constants references for the standard deviation using for initialization
@@ -276,10 +276,10 @@ inline void enrichWithRandomNoise(double state[], double const std[])
   double &y(state[1]);
   double &theta(state[2]);
 
-  default_random_engine generator;
-  normal_distribution<double> dist_x(x, std_x);
-  normal_distribution<double> dist_y(y, std_y);
-  normal_distribution<double> dist_theta(theta, std_theta);
+//  default_random_engine generator;
+  std::normal_distribution<double> dist_x(x, std_x);
+  std::normal_distribution<double> dist_y(y, std_y);
+  std::normal_distribution<double> dist_theta(theta, std_theta);
   x = dist_x(generator);
   y = dist_y(generator);
   theta = dist_theta(generator);

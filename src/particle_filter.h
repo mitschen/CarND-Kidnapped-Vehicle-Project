@@ -9,6 +9,7 @@
 #ifndef PARTICLE_FILTER_H_
 #define PARTICLE_FILTER_H_
 
+#include <random>
 #include "helper_functions.h"
 
 struct SObservation
@@ -31,7 +32,7 @@ struct Particle {
   Particle();
 //  Particle(int const &_id, double const &_x, double const& _y, double const& _theta);
   Particle(int const &_id, double const state[]);
-  void predictPosition(double const &dt, double const std_pos[], double const &velocity, double const &yawrate);
+  void predictPosition(double const &dt, double const std_pos[], double const &velocity, double const &yawrate, std::default_random_engine &gen);
   void transformAndUpdateObservation(std::vector<LandmarkObs> const &);
   void matchObservationsToMap(Map const &map_landmarks, double const &maxDistance);
   void calculateWeight(double const std_landmark[]);
@@ -62,6 +63,8 @@ class ParticleFilter {
 	// Vector of weights of all particles
 	std::vector<double> weights;
 	
+	//Generator we're using
+	std::default_random_engine randomGen;
 public:
 	
 	// Set of current particles
@@ -69,10 +72,11 @@ public:
 
 	// Constructor
 	// @param num_particles Number of particles
-	ParticleFilter(int noParticals = 30)
+	ParticleFilter(int noParticals = 5)
 	: num_particles(noParticals)
 	, is_initialized(false)
 	, weights(0)
+	, randomGen()
 	, particles(0){}
 
 	// Destructor

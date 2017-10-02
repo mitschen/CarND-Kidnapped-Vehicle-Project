@@ -26,7 +26,7 @@ Particle::Particle()
 Particle::Particle(int const &_id,double const state[])
 : id(_id), x(state[0]), y(state[1]), theta(state[2]), weight(1.), observations(){};//, associations(), sense_x(), sense_y(){}
 
-void Particle::predictPosition(double const &dt, double const std_pos[], double const &velocity, double const &yawrate)
+void Particle::predictPosition(double const &dt, double const std_pos[], double const &velocity, double const &yawrate, default_random_engine &gen)
 {
 //  std::cout<<id <<" "<<__FUNCTION__<<" x "<<x<<" y "<<y<<" theta "<<theta<<" "<<velocity<<" "<<yawrate<<std::endl;
   if(yawrate == 0.)
@@ -52,10 +52,10 @@ void Particle::predictPosition(double const &dt, double const std_pos[], double 
   //now adding noise
   double state[] = {x, y, theta};
 //  std::cout<<id <<" "<<__FUNCTION__<<" x "<<x<<" y "<<y<<" theta "<<theta<<" "<<velocity<<" "<<yawrate<<std::endl;
-//  enrichWithRandomNoise(state, std_pos);
-//  x = state[0];
-//  y = state[1];
-//  theta = state[2];
+  enrichWithRandomNoise(state, std_pos, gen);
+  x = state[0];
+  y = state[1];
+  theta = state[2];
 //  std::cout<<id <<" "<<__FUNCTION__<<" x "<<x<<" y "<<y<<" theta "<<theta<<" "<<velocity<<" "<<yawrate<<std::endl;
 //  assert(false);
 }
@@ -203,7 +203,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
   normal_distribution<double> dist_x(x, std_x);
   normal_distribution<double> dist_y(y, std_y);
   normal_distribution<double> dist_theta(theta, std_theta);
-  default_random_engine gen;
+//  default_random_engine gen;
 
   double state[3];
 //  state[0]=x;
@@ -212,9 +212,9 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 
   for(int i(0); i<num_particles; i++)
   {
-    state[0] = dist_x(gen);
-    state[1] = dist_y(gen);
-    state[2] = dist_theta(gen);
+    state[0] = dist_x(randomGen);
+    state[1] = dist_y(randomGen);
+    state[2] = dist_theta(randomGen);
 //    enrichWithRandomNoise(state, std);
     particles.push_back(Particle(i, state));
 //    particles.push_back(Particle(i, dist_x(gen), dist_y(gen), dist_theta(gen)));
@@ -232,7 +232,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
   assert(initialized());
   for(int i(0); i < num_particles; i++)
   {
-    particles[i].predictPosition(delta_t, std_pos, velocity, yaw_rate);
+    particles[i].predictPosition(delta_t, std_pos, velocity, yaw_rate, randomGen);
   }
 }
 
@@ -331,7 +331,6 @@ Particle ParticleFilter::SetAssociations(Particle particle, std::vector<int> ass
 
 string ParticleFilter::getAssociations(Particle best)
 {
-  best.printMe();
   vector<int> v;
   for(int i(0), _maxI(best.observations.size()); i < _maxI; i++)
   {
